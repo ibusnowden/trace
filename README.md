@@ -51,6 +51,7 @@ Reload: `/reload` in pi
 | `/thinking-sessions` | List all sessions with thinking traces |
 | `/thinking-aggregate` | Aggregate traces from ALL sessions, cross-model analysis |
 | `/thinking-dashboard` | Generate standalone HTML dashboard with search/charts/timeline |
+| `/thinking-patterns [filter]` | Classify reasoning patterns (deductive, inductive, abductive, etc.) |
 
 ## Workflow
 
@@ -91,6 +92,7 @@ Ask a complex question...        # Extension captures thinking blocks
 /thinking-sessions               # List all sessions with traces
 /thinking-aggregate              # Full cross-session aggregated report
 /thinking-dashboard              # Open HTML dashboard in browser
+/thinking-patterns               # Classify reasoning patterns
 ```
 
 ### Testing Checklist
@@ -110,6 +112,7 @@ Run these commands in order to validate the extension is working:
 | 9 | `/thinking-sessions` | Lists all sessions that have traces, with counts |
 | 10 | `/thinking-aggregate` | Full cross-session aggregated report with model comparison, timeline, distribution |
 | 11 | `/thinking-dashboard` | Opens a standalone HTML dashboard in your browser |
+| 12 | `/thinking-patterns` | Classifies each trace's reasoning strategy (deductive, inductive, etc.) |
 
 ## Examples
 

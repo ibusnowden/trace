@@ -1102,6 +1102,49 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	// ── Command: /thinking-patterns ──
+
+	pi.registerCommand("thinking-patterns", {
+		description:
+			"Analyze thinking traces and classify reasoning patterns " +
+			"(deductive, inductive, abductive, analogical, causal, etc.). " +
+			"Use /thinking-patterns [filter] to analyze specific traces.",
+		handler: async (args, ctx) => {
+			if (traces.length === 0) {
+				ctx.ui.notify("No thinking traces to analyze.", "info");
+				return;
+			}
+
+			const filterText = args.trim().toLowerCase();
+			const filtered = filterText
+				? traces.filter(
+						(t) =>
+							t.thinking.toLowerCase().includes(filterText) ||
+							t.model.toLowerCase().includes(filterText),
+					)
+				: traces;
+
+			if (filtered.length === 0) {
+				ctx.ui.notify(`No traces matching "${filterText}"`, "warning");
+				return;
+			}
+
+			ctx.ui.notify(`Analyzing ${filtered.length} trace(s) for reasoning patterns...`, "info");
+
+			const { classifyAll, aggregatePatterns, formatPatternReport } = await import("./pattern-classifier.ts");
+			const results = classifyAll(filtered);
+			const aggregate = aggregatePatterns(results);
+			const report = formatPatternReport(results, aggregate);
+
+			ctx.ui.setEditorText(report);
+			const dominant = aggregate.overallDominant;
+			ctx.ui.notify(
+				`Analyzed ${results.length} trace(s). Dominant pattern: ${dominant} (${aggregate.patternDistribution[dominant]} trace(s))`,
+				"success",
+			);
+		},
+	});
+
 	// ── Inner helpers ──
 
 	function describeThinkingStyle(traces: ThinkingTrace[]): string {
