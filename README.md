@@ -48,6 +48,8 @@ Reload: `/reload` in pi
 | `/thinking-viz [filter]` | Interactive TUI browser for traces |
 | `/thinking-blog` | Auto-generate a blog-ready analysis post |
 | `/thinking-clear` | Clear all captured traces |
+| `/thinking-sessions` | List all sessions with thinking traces |
+| `/thinking-aggregate` | Aggregate traces from ALL sessions, cross-model analysis |
 
 ## Workflow
 
@@ -85,7 +87,26 @@ Ask a complex question...        # Extension captures thinking blocks
 /thinking-blog                   # Auto-generate blog post
 /thinking-stats                  # Show statistics
 /thinking-clear                  # Clear all traces
+/thinking-sessions               # List all sessions with traces
+/thinking-aggregate              # Full cross-session aggregated report
 ```
+
+### Testing Checklist
+
+Run these commands in order to validate the extension is working:
+
+| Step | Command | What to expect |
+|------|---------|----------------|
+| 1 | `/thinking-log` | Both traces listed in editor |
+| 2 | `/thinking-log gradient` | Only traces mentioning "gradient" |
+| 3 | `/thinking-stats` | Count, token estimates, models used |
+| 4 | `/thinking-viz` | Interactive TUI — navigate with ↑↓, `/` to search, Enter to view, Esc to exit |
+| 5 | `/thinking-diagram` | Mermaid flowchart generated in editor |
+| 6 | `/thinking-export` | Full structured markdown export |
+| 7 | `/thinking-blog` | Blog-ready analysis post |
+| 8 | `/thinking-clear` | Clears all traces (asks for confirmation) |
+| 9 | `/thinking-sessions` | Lists all sessions that have traces, with counts |
+| 10 | `/thinking-aggregate` | Full cross-session aggregated report with model comparison, timeline, distribution |
 
 ## Examples
 

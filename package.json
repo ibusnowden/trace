@@ -1,0 +1,16 @@
+{
+  "name": "@inniang/reasoning-trace-viz",
+  "version": "0.1.0",
+  "description": "Reasoning Trace Visualizer — capture, compare, and analyze LLM thinking traces across providers",
+  "keywords": ["pi-package", "reasoning", "thinking", "trace-visualizer", "llm"],
+  "license": "MIT",
+  "type": "module",
+  "pi": {
+    "extensions": ["./extensions"]
+  },
+  "files": ["extensions/", "README.md", "examples/"],
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": ">=0.74.0",
+    "@earendil-works/pi-tui": ">=0.74.0"
+  }
+}
