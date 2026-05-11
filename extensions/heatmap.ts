@@ -293,49 +293,45 @@ export function formatHeatmap(result: HeatmapResult): string {
 	output += `**${result.provider}/${result.model}** — ${result.totalChars.toLocaleString()} chars\n`;
 	output += `Overall density: **${(result.overallDensity * 100).toFixed(0)}%**  |  Peak: **${(result.peakDensity * 100).toFixed(0)}%**\n\n`;
 
-	// ── Top hot zones ──
-	if (result.hotZones.length > 0) {
-		const sorted = [...result.hotZones].sort((a, b) => b.density - a.density);
-		output += `## 🔥 Hot Zones (Highest Reasoning Effort)\n\n`;
-		for (let i = 0; i < Math.min(sorted.length, 5); i++) {
-			const z = sorted[i];
-			const effort = (z.density * 100).toFixed(0);
-			const barLen = Math.round(z.density * 15);
-			const bar = "█".repeat(barLen) + "░".repeat(15 - barLen);
-			const label = z.label.length > 45 ? z.label.slice(0, 42) + "..." : z.label;
-			output += `  ${bar} ${effort}%  ${label}\n`;
+	// Density bar
+	const W = 60;
+	output += "0%".padEnd(5) + " ".repeat(W - 8) + "100%\n";
+
+	const bar = result.segments.map((s) => {
+		const chars = Math.max(1, Math.round(((s.end - s.start) / result.totalChars) * W));
+		if (s.density > 0.8) return "█".repeat(chars);
+		if (s.density > 0.6) return "▓".repeat(chars);
+		if (s.density > 0.4) return "▒".repeat(chars);
+		if (s.density > 0.2) return "░".repeat(chars);
+		return " ".repeat(chars);
+	}).join("").slice(0, W);
+
+	output += "   " + bar + "\n";
+	output += "   │" + "         │" + "         │" + "         │" + "         │" + "         │\n";
+	output += "   0%        20%       40%       60%       80%      100%\n\n";
+
+	// Hot zones
+	const zones = [...result.hotZones].sort((a, b) => b.density - a.density).slice(0, 6);
+	if (zones.length > 0) {
+		output += "🔥 Hot Zones\n\n";
+		for (const z of zones) {
+			const pct = (z.density * 100).toFixed(0);
+			const b = "█".repeat(Math.round(z.density * 10)) + "░".repeat(10 - Math.round(z.density * 10));
+			output += `  ${b}  ${pct}%  ${z.label.slice(0, 50)}\n`;
 		}
 		output += "\n";
 	}
 
-	// ── Segment quick reference ──
-	output += `## Segments (${result.segments.length})\n\n`;
-	output += "| # | Density | Category | Preview |\n";
-	output += "|---|---------|----------|--------|\n";
-	for (let i = 0; i < result.segments.length; i++) {
-		const s = result.segments[i];
-		const densityPct = `${(s.density * 100).toFixed(0)}%`;
-		const cat = CATEGORY_COLORS[s.category]?.label || s.category;
-		const preview = s.label.length > 50 ? s.label.slice(0, 47) + "..." : s.label;
-		const icon = s.density > 0.6 ? "🔥" : s.density > 0.4 ? "⚡" : " ";
-		output += `| ${icon} ${i + 1} | ${densityPct} | ${cat} | ${preview} |\n`;
-	}
-	output += "\n";
-
-	// ── Category breakdown ──
+	// Category breakdown
 	const totalLen = Object.values(result.categoryBreakdown).reduce((a, b) => a + b, 0);
-	output += `## Reasoning Categories\n\n`;
-	output += "| Category | % |\n|----------|---|\n";
+	output += "Categories\n\n";
 	for (const [cat, len] of Object.entries(result.categoryBreakdown).sort((a, b) => b[1] - a[1])) {
 		const pct = ((len / totalLen) * 100).toFixed(1);
-		const barLen = Math.round((len / totalLen) * 20);
-		output += `| ${CATEGORY_COLORS[cat]?.label || cat} | ${"█".repeat(barLen)} ${pct}% |\n`;
+		const b = "█".repeat(Math.round((len / totalLen) * 20));
+		output += `  ${b.padEnd(20)} ${pct.padStart(5)}%  ${CATEGORY_COLORS[cat]?.label || cat}\n`;
 	}
 	output += "\n";
-
-	// ── Legend ──
-	output += `**Density legend:** █ 80-100% (comparisons/verification)  ▓ 60-80%  ▒ 40-60%  ░ 20-40%  (spaces) 0-20%\n`;
-	output += `**Category legend:** ${Object.entries(CATEGORY_COLORS).map(([k, v]) => `${v.label}`).join(", ")}\n`;
+	output += "█ High  ▓ Med-High  ▒ Medium  ░ Low-Light\n";
 
 	return output;
 }
