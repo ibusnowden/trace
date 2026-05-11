@@ -139,9 +139,9 @@ const SIGNALS: DensitySignal[] = [
 // Heatmap Generation
 // ──────────────────────────────────────────────────────────────
 
-const WINDOW_SIZE = 200; // chars per sliding window
-const STEP_SIZE = 50;    // step between windows
-const MIN_SEGMENT_LENGTH = 100;
+const WINDOW_SIZE = 400; // chars per sliding window
+const STEP_SIZE = 100;   // step between windows
+const MIN_SEGMENT_LENGTH = 300;
 
 export function generateHeatmap(trace: ThinkingTrace): HeatmapResult {
 	const text = trace.thinking;
@@ -202,8 +202,11 @@ export function generateHeatmap(trace: ThinkingTrace): HeatmapResult {
 		}
 
 		// Check if we should break (score change or end of windows)
+		const scoreDiff = Math.abs(w.score - (normalized[i + 1]?.score ?? w.score));
 		const shouldBreak = i === normalized.length - 1 ||
-			Math.abs(w.score - (normalized[i + 1]?.score ?? w.score)) > 0.3;
+			scoreDiff > 0.2 ||
+			(currentScores.length >= 3 && scoreDiff > 0.1) ||
+			currentScores.length >= 8;
 
 		if (shouldBreak && currentScores.length > 0) {
 			const avgDensity = currentScores.reduce((a, b) => a + b, 0) / currentScores.length;

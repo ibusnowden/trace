@@ -1275,12 +1275,29 @@ export default function (pi: ExtensionAPI) {
 					"success",
 				);
 			} else {
-				let output = results.map((r, i) => {
-					const h = formatHeatmap(r);
-					return `# Heatmap ${i + 1}: ${r.provider}/${r.model}\n\n${h}`;
-				}).join("\n\n---\n\n");
+				// Show summary instead of dumping all
+				let output = `# 🧠 Reasoning Density Heatmaps (${results.length} total)\n\n`;
+
+				for (let i = 0; i < results.length; i++) {
+					const r = results[i];
+					output += `## ${i + 1}. ${r.provider}/${r.model} (${r.totalChars.toLocaleString()} chars)\n\n`;
+					output += `- Overall density: ${(r.overallDensity * 100).toFixed(0)}%\n`;
+					output += `- Peak: ${(r.peakDensity * 100).toFixed(0)}%\n`;
+					output += `- Hot zones: ${r.hotZones.length}\n`;
+					output += `- Top category: ${Object.entries(r.categoryBreakdown).sort((a, b) => b[1] - a[1])[0]?.[0] || "none"}\n\n`;
+
+					const topHot = [...r.hotZones].sort((a, b) => b.density - a.density).slice(0, 3);
+					for (const z of topHot) {
+						const pct = (z.density * 100).toFixed(0);
+						output += `  🔥 ${pct}%  ${z.label.slice(0, 60)}\n`;
+					}
+					output += "\n";
+				}
+
+				output += `---\nUse \`/thinking-heatmap <N>\` to see the full heatmap for a specific trace.\n`;
+
 				ctx.ui.setEditorText(output);
-				ctx.ui.notify(`Generated ${results.length} heatmap(s)`, "success");
+				ctx.ui.notify(`Summary of ${results.length} heatmap(s). Use /thinking-heatmap <N> for details.`, "success");
 			}
 		},
 	});
