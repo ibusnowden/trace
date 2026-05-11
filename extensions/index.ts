@@ -1063,6 +1063,45 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	// ── Command: /thinking-dashboard ──
+
+	pi.registerCommand("thinking-dashboard", {
+		description:
+			"Generate a standalone HTML dashboard with search, charts, timeline, " +
+			"and model comparison. Opens in browser automatically.",
+		handler: async (_args, ctx) => {
+			if (traces.length === 0) {
+				ctx.ui.notify("No thinking traces to dashboard. Ask some complex questions first!", "info");
+				return;
+			}
+
+			ctx.ui.notify(`Generating dashboard from ${traces.length} traces...`, "info");
+
+			const { generateDashboardHtml } = await import("./dashboard.ts");
+			const html = generateDashboardHtml(traces);
+
+			// Write to temp file
+			const { writeFileSync, mkdtempSync } = await import("node:fs");
+			const { tmpdir } = await import("node:os");
+			const { join } = await import("node:path");
+			const dir = mkdtempSync(join(tmpdir(), "thinking-dash-"));
+			const filePath = join(dir, "index.html");
+			writeFileSync(filePath, html, "utf8");
+
+			ctx.ui.notify(`Dashboard written to ${filePath}`, "success");
+
+			// Open in browser
+			const { exec } = await import("node:child_process");
+			const platform = process.platform;
+			const cmd = platform === "darwin" ? "open" : platform === "win32" ? "start" : "xdg-open";
+			exec(`${cmd} "${filePath}"`, (err) => {
+				if (err) {
+					ctx.ui.notify(`Could not open browser. Open manually: ${filePath}`, "warning");
+				}
+			});
+		},
+	});
+
 	// ── Inner helpers ──
 
 	function describeThinkingStyle(traces: ThinkingTrace[]): string {
