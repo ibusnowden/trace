@@ -1145,6 +1145,56 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	// ── Command: /thinking-code ──
+
+	pi.registerCommand("thinking-code", {
+		description:
+			"Extract code snippets that were reasoned about during thinking. " +
+			"Shows languages, context (writing/analyzing/debugging/comparing), " +
+			"and which approaches were chosen vs. rejected. " +
+			"Use /thinking-code [filter] to filter by language or content.",
+		handler: async (args, ctx) => {
+			if (traces.length === 0) {
+				ctx.ui.notify("No thinking traces to extract code from.", "info");
+				return;
+			}
+
+			const filterText = args.trim().toLowerCase();
+			const filtered = filterText
+				? traces.filter(
+						(t) =>
+							t.thinking.toLowerCase().includes(filterText) ||
+							t.model.toLowerCase().includes(filterText),
+					)
+				: traces;
+
+			if (filtered.length === 0) {
+				ctx.ui.notify(`No traces matching "${filterText}"`, "warning");
+				return;
+			}
+
+			ctx.ui.notify(`Extracting code from ${filtered.length} trace(s)...`, "info");
+
+			const { extractCodeFromAll, formatCodeReport } = await import("./code-extractor.ts");
+			const results = extractCodeFromAll(filtered);
+			const totalSnippets = results.reduce((s, r) => s + r.snippets.length, 0);
+
+			if (totalSnippets === 0) {
+				ctx.ui.notify("No code snippets found in these traces.", "info");
+				return;
+			}
+
+			const report = formatCodeReport(results);
+			ctx.ui.setEditorText(report);
+
+			const langs = [...new Set(results.flatMap((r) => r.languages))].join(", ");
+			ctx.ui.notify(
+				`Extracted ${totalSnippets} code snippet(s) from ${filtered.length} trace(s). Languages: ${langs}`,
+				"success",
+			);
+		},
+	});
+
 	// ── Inner helpers ──
 
 	function describeThinkingStyle(traces: ThinkingTrace[]): string {

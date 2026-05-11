@@ -52,6 +52,7 @@ Reload: `/reload` in pi
 | `/thinking-aggregate` | Aggregate traces from ALL sessions, cross-model analysis |
 | `/thinking-dashboard` | Generate standalone HTML dashboard with search/charts/timeline |
 | `/thinking-patterns [filter]` | Classify reasoning patterns (deductive, inductive, abductive, etc.) |
+| `/thinking-code [filter]` | Extract code reasoned about during thinking, with context analysis |
 
 ## Workflow
 
@@ -93,6 +94,7 @@ Ask a complex question...        # Extension captures thinking blocks
 /thinking-aggregate              # Full cross-session aggregated report
 /thinking-dashboard              # Open HTML dashboard in browser
 /thinking-patterns               # Classify reasoning patterns
+/thinking-code                   # Extract code from thinking
 ```
 
 ### Testing Checklist
@@ -113,6 +115,7 @@ Run these commands in order to validate the extension is working:
 | 10 | `/thinking-aggregate` | Full cross-session aggregated report with model comparison, timeline, distribution |
 | 11 | `/thinking-dashboard` | Opens a standalone HTML dashboard in your browser |
 | 12 | `/thinking-patterns` | Classifies each trace's reasoning strategy (deductive, inductive, etc.) |
+| 13 | `/thinking-code` | Extracts code reasoned about during thinking with context analysis |
 
 ## Examples
 
@@ -180,16 +183,19 @@ Paste into [mermaid.live](https://mermaid.live) to render.
 
 ## Building SOTA Features
 
-This is a foundation. Ideas for next steps:
+All built:
 
-- [ ] **Interactive TUI Viewer** — browse traces with keyboard navigation, full preview pane
-- [ ] **Diagram Generator** — convert reasoning chains to Mermaid flowcharts
-- [ ] **Web UI** — Export traces to a local web dashboard with interactive graphs
-- [ ] **Pattern detection** — Automatically classify reasoning strategies (deductive, inductive, abductive)
+- [x] **Interactive TUI Viewer** — browse traces with keyboard navigation, full preview pane (`/thinking-viz`)
+- [x] **Diagram Generator** — convert reasoning chains to Mermaid flowcharts (`/thinking-diagram`)
+- [x] **Web Dashboard** — standalone HTML with search, charts, timeline (`/thinking-dashboard`)
+- [x] **Pattern Detection** — classify reasoning strategies (deductive, inductive, abductive, etc.) (`/thinking-patterns`)
+- [x] **Cross-session Aggregation** — aggregate and compare traces across all sessions (`/thinking-aggregate`, `/thinking-sessions`)
+- [x] **Thinking-to-Code** — extract code reasoned about during thinking (`/thinking-code`)
+
+Ideas for future exploration:
+
 - [ ] **Benchmark integration** — Pair with eval frameworks to correlate thinking patterns with accuracy
 - [ ] **Token-level heatmaps** — Visualize which parts of the thinking were most "effortful"
-- [ ] **Cross-session aggregation** — Compare thinking patterns across different problem types
-- [ ] **Thinking-to-code** — Extract code that was reasoned about during thinking
 
 ## Requirements
 
