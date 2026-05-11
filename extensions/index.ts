@@ -227,15 +227,14 @@ export default function (pi: ExtensionAPI) {
 		const content = msg.content;
 		if (!content || !Array.isArray(content)) return;
 
+		const model = msg.model || "unknown";
+		const provider = msg.provider || "unknown";
+
+		// --- Method 1: Native thinking blocks (Claude, Gemini, DeepSeek native) ---
 		const thinkingBlocks = content.filter(
 			(c): c is { type: "thinking"; thinking: string } =>
 				c.type === "thinking" && typeof c.thinking === "string",
 		);
-
-		if (thinkingBlocks.length === 0) return;
-
-		const model = msg.model || "unknown";
-		const provider = msg.provider || "unknown";
 
 		for (const block of thinkingBlocks) {
 			const trace: ThinkingTrace = {
@@ -248,6 +247,52 @@ export default function (pi: ExtensionAPI) {
 				compacted: false,
 			};
 			saveTrace(trace, ctx);
+		}
+
+		// --- Method 2: Text-based thinking heuristics (OpenAI-compatible APIs) ---
+		// For providers that merge thinking into text, we detect the reasoning preamble
+		// before code blocks or structural reasoning patterns
+		if (thinkingBlocks.length === 0) {
+			for (const block of content) {
+				if (block.type !== "text" || typeof block.text !== "string") continue;
+				const text = block.text;
+
+				// Detect thinking-like patterns: reasoning before code blocks,
+				// meta-cognitive phrases, design rationale sections
+				const thinkingSignals = [
+					// Reasoning preamble before code
+					/^(Let me think|Let me reason|Let me work|Let me consider|Let me analyze)/im,
+					// Design/architecture reasoning
+					/(## Design|## Architecture|## Reasoning|## Approach|## Analysis)/im,
+					// Meta-cognitive phrases
+					/(I need to|We need to|The key insight|The key idea|Let me break this down)/im,
+					// Comparative analysis
+					/(Let me compare|Comparing|vs\.|versus|On the one hand|On the other hand)/im,
+					// Alternative exploration
+					/(Another approach|Alternative|Option \d|Approach \d|Method \d)/im,
+				];
+
+				let hasThinkingSignal = false;
+				for (const signal of thinkingSignals) {
+					if (signal.test(text)) {
+						hasThinkingSignal = true;
+						break;
+					}
+				}
+
+				if (hasThinkingSignal && text.length > 100) {
+					const trace: ThinkingTrace = {
+						id: `trace-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+						thinking: text,
+						model,
+						provider,
+						timestamp: Date.now(),
+						turnIndex: turnCounter,
+						compacted: false,
+					};
+					saveTrace(trace, ctx);
+				}
+			}
 		}
 	});
 
