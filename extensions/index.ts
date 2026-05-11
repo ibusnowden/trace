@@ -1240,6 +1240,51 @@ export default function (pi: ExtensionAPI) {
 		},
 	});
 
+	// ── Command: /thinking-heatmap [index] ──
+
+	pi.registerCommand("thinking-heatmap", {
+		description:
+			"Visualize reasoning density across a thinking trace. " +
+			"Shows which parts had the most reasoning effort (comparisons, " +
+			"verification, revisions, analysis). " +
+			"Use /thinking-heatmap <index> for a specific trace (default: all).",
+		handler: async (args, ctx) => {
+			if (traces.length === 0) {
+				ctx.ui.notify("No thinking traces to analyze.", "info");
+				return;
+			}
+
+			const index = parseInt(args.trim());
+			const traceToAnalyze = !isNaN(index) && index > 0 && index <= traces.length
+				? [traces[index - 1]]
+				: traces;
+
+			if (!isNaN(index) && traceToAnalyze.length === 0) {
+				ctx.ui.notify(`Trace #${index} not found. You have ${traces.length} trace(s).`, "warning");
+				return;
+			}
+
+			const { generateAllHeatmaps, formatHeatmap } = await import("./heatmap.ts");
+			const results = generateAllHeatmaps(traceToAnalyze);
+
+			if (results.length === 1) {
+				ctx.ui.setEditorText(formatHeatmap(results[0]));
+				const r = results[0];
+				ctx.ui.notify(
+					`Heatmap: ${(r.overallDensity * 100).toFixed(0)}% overall density, ${r.hotZones.length} hot zone(s), peak ${(r.peakDensity * 100).toFixed(0)}%`,
+					"success",
+				);
+			} else {
+				let output = results.map((r, i) => {
+					const h = formatHeatmap(r);
+					return `# Heatmap ${i + 1}: ${r.provider}/${r.model}\n\n${h}`;
+				}).join("\n\n---\n\n");
+				ctx.ui.setEditorText(output);
+				ctx.ui.notify(`Generated ${results.length} heatmap(s)`, "success");
+			}
+		},
+	});
+
 	// ── Inner helpers ──
 
 	function describeThinkingStyle(traces: ThinkingTrace[]): string {
